@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  eureka-server:
+    image: springcloud/eureka
+    container_name: eureka-container
+    ports:
+      - "8761:8761"
+    networks:
+      - microservices-network
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql-container1
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    networks:
+      - microservices-network
+
+  gateway-service:
+    build:
+      context: ./gateway
+    ports:
+      - "8888:8888"
+    depends_on:
+      - mysql
+      - eureka-server
+    networks:
+      - microservices-network
+    environment:
+      SPRING_APPLICATION_NAME: gateway-service  # Name of the service in Eureka
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+
+  client-service:
+    build:
+      context: ./client
+    ports:
+      - "8088:8088"
+    depends_on:
+      - mysql
+      - eureka-server
+    networks:
+      - microservices-network
+    environment:
+      SPRING_APPLICATION_NAME: client-service
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/clientservicedb?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD:
+
+  voiture-service:
+    build:
+      context: ./car
+    ports:
+      - "8089:8089"
+    depends_on:
+      - mysql
+      - eureka-server
+    networks:
+      - microservices-network
+    environment:
+      SPRING_APPLICATION_NAME: voiture-service
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/carservicedb?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD:
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "8081:80"
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge

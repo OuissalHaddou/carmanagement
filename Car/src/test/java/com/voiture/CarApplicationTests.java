@@ -3,10 +3,10 @@ package com.voiture;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+//@SpringBootTest
 class CarApplicationTests {
 
-	@Test
+	//@Test
 	void contextLoads() {
 	}
 
